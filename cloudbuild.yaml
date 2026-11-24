@@ -1,0 +1,31 @@
+# Deploy the server to Cloud Run. Run from the server folder:
+#   gcloud builds submit --config cloudbuild.yaml \
+#     --substitutions=_CLIENT_URL=https://YOUR-CLIENT-URL,_REGION=asia-south1
+# Secrets (MONGO_URI, JWT_SECRET) come from Secret Manager, see DEPLOY-GCP.md.
+substitutions:
+  _SERVICE: api-tester-server
+  _REGION: asia-south1
+  _REPO: api-tester
+  _CLIENT_URL: ''
+  _ADMIN_EMAIL: ''
+
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args: [build, -t, '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$BUILD_ID', .]
+  - name: gcr.io/cloud-builders/docker
+    args: [push, '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$BUILD_ID']
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE}
+      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$BUILD_ID
+      - --region=${_REGION}
+      - --platform=managed
+      - --allow-unauthenticated
+      - --set-env-vars=^#^CLIENT_URL=${_CLIENT_URL}#ALLOW_PRIVATE_URLS=false#ADMIN_EMAIL=${_ADMIN_EMAIL}
+      - --set-secrets=MONGO_URI=MONGO_URI:latest,JWT_SECRET=JWT_SECRET:latest
+
+images:
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$BUILD_ID
