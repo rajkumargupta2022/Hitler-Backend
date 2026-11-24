@@ -24,7 +24,7 @@ Deploy (from this folder):
 
 ```bash
 gcloud builds submit --config cloudbuild.yaml \
-  --substitutions=_CLIENT_URL=https://api-tester-client-386235460295.asia-south1.run.app,_ADMIN_EMAIL=rajkumargupt84952@gmail.com
+  --substitutions=_CLIENT_URL=https://api-tester-client-386235460295.asia-south1.run.app,https://hitler-client.bfccapuat.xyz,_ADMIN_EMAIL=rajkumargupt84952@gmail.com
 ```
 
 The command prints the service URL. Check `<url>/api/health`, then use that URL as `_API_URL` when deploying the client.
